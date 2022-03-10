@@ -7,12 +7,15 @@ import { Scene } from "@babylonjs/core/scene"
 import { Vector3 } from "@babylonjs/core/Maths/math.vector"
 
 import { SampleMaterial } from "./Materials/SampleMaterial"
+import { RTSCameraInput } from "./RTSCameraInput"
+import { FreeCameraKeyboardWalkInput } from "./RTSCameraInput"
 
 const view = document.getElementById("view") as HTMLCanvasElement
 const engine = new Engine(view, true)
 
 const scene = new Scene(engine)
 
+/*
 const camera = new ArcRotateCamera(
     "camera",
     Math.PI / 2,
@@ -24,12 +27,18 @@ camera.useAutoRotationBehavior = false;
 camera._panningMouseButton = 1;
 camera.inputs.clear();
 camera.inputs.addPointers();
+*/
 
-//const camera = new UniversalCamera("UniversalCamera", new Vector3(0, 10, 0), scene);
+const camera = new UniversalCamera("UniversalCamera", new Vector3(0, 10, 0), scene);
 
 // Targets the camera to a particular position. In this case the scene origin
-//camera.setTarget(Vector3.Zero());
+camera.setTarget(Vector3.Zero());
 
+
+camera.inputs.clear();
+//camera.inputs.add(new RTSCameraInput());
+camera.inputs.add(new FreeCameraKeyboardWalkInput())
+camera.speed = 0.1;
 camera.attachControl(view)
 
 const light = new HemisphericLight(
