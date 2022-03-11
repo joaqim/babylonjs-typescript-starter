@@ -1,6 +1,77 @@
-import { ICameraInput, Tools, UniversalCamera, Vector3 } from "@babylonjs/core";
+import { CameraInputsManager, ICameraInput, Tools, UniversalCamera, Vector3 } from "@babylonjs/core";
 
-export class FreeCameraKeyboardWalkInput implements ICameraInput<UniversalCamera> {
+export class FPSCameraInputsManager extends CameraInputsManager<UniversalCamera> {
+    /**
+     * Instantiates a new ArcRotateCameraInputsManager.
+     * @param camera Defines the camera the inputs belong to
+     */
+     constructor(camera: UniversalCamera) {
+        super(camera);
+    }
+
+    /**
+     * Add mouse wheel input support to the input manager.
+     * @returns the current input manager
+     */
+    public addMouseWheel(): FPSCameraInputsManager {
+        this.add(new FPSCameraMouseWheelInput());
+        return this;
+    }
+
+    /**
+     * Add pointers input support to the input manager.
+     * @returns the current input manager
+     */
+    public addPointers(): FPSCameraInputsManager {
+        this.add(new FPSCameraPointersInput());
+        return this;
+    }
+
+    /**
+     * Add keyboard input support to the input manager.
+     * @returns the current input manager
+     */
+    public addKeyboard(): FPSCameraInputsManager {
+        this.add(new FPSCameraKeyboardInput());
+        return this;
+    }
+}
+
+export class FPSCameraMouseWheelInput implements ICameraInput<UniversalCamera> {
+    camera: UniversalCamera;
+    getClassName(): string {
+        throw new Error("Method not implemented.");
+    }
+    getSimpleName(): string {
+        throw new Error("Method not implemented.");
+    }
+    attachControl(noPreventDefault?: boolean): void {
+        throw new Error("Method not implemented.");
+    }
+    detachControl(): void {
+        throw new Error("Method not implemented.");
+    }
+    checkInputs?: () => void;
+}
+
+export class FPSCameraPointersInput implements ICameraInput<UniversalCamera> {
+    camera: UniversalCamera;
+    getClassName(): string {
+        throw new Error("Method not implemented.");
+    }
+    getSimpleName(): string {
+        throw new Error("Method not implemented.");
+    }
+    attachControl(noPreventDefault?: boolean): void {
+        throw new Error("Method not implemented.");
+    }
+    detachControl(): void {
+        throw new Error("Method not implemented.");
+    }
+    checkInputs?: () => void;
+}
+
+export class FPSCameraKeyboardInput implements ICameraInput<UniversalCamera> {
 
     camera: UniversalCamera;
 
