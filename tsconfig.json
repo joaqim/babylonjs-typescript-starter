@@ -6,13 +6,16 @@
     "sourceMap": true,
     "strict": true,
     "preserveConstEnums": true,
+    "allowJs": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
     "lib": [
       "dom",
       "dom.iterable",
       "esnext"
     ],
     "jsx": "react",
-    "rootDir": "src"
   },
-  "include": ["src/**/*"]
+  "include": ["src/**/*"],
+  "exclude": ["/**/*.js"]
 }
