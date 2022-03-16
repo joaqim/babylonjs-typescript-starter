@@ -1,4 +1,4 @@
-import { ArcRotateCamera, Camera, CameraInputsManager } from "@babylonjs/core";
+import { ArcRotateCamera, Camera, CameraInputsManager, FilesInputStore, Vector3 } from "@babylonjs/core";
 import RTSCameraKeyboardMoveInput from "./Inputs/RTSCameraKeyboardMoveInput";
 import RTSCameraMouseWheelInput from "./Inputs/RTSCameraMouseWheelInput";
 import RTSCameraPointersInput from "./Inputs/RTSCameraPointersInput";
@@ -10,8 +10,12 @@ export class RTSCameraInputsManager extends CameraInputsManager<ArcRotateCamera>
      */
     constructor(camera: ArcRotateCamera) {
         super(camera);
-        this.camera.upperRadiusLimit = 25;
+        this.camera.speed = 1.0;
+        this.camera.upperRadiusLimit = 55;
         this.camera.lowerRadiusLimit = 5;
+        this.camera.wheelDeltaPercentage = 550;
+        this.camera.panningSensibility = 1000;
+        this.camera.panningAxis = new Vector3(1, 0, 1);
     }
 
     /**
@@ -37,7 +41,12 @@ export class RTSCameraInputsManager extends CameraInputsManager<ArcRotateCamera>
      * @returns the current input manager
      */
     public addKeyboard(): RTSCameraInputsManager {
-        this.add(new RTSCameraKeyboardMoveInput(this.camera));
+        var keyboardInput = new RTSCameraKeyboardMoveInput(this.camera);
+
+        this.camera.storeState();
+        keyboardInput.useKeyReset = true;
+
+        this.add(keyboardInput)
         return this;
     }
 

@@ -16,13 +16,14 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
     keysFly: number[] = [190];
     keysSink: number[] = [186];
 
-    keysReset: number[] = [220];
+    keysReset: number[] = [80];
 
     panningSensibility: number = 50.0;
     zoomingSensibility: number = 25.0;
     angularSpeed: number = 0.01;
 
     useAltToZoom: boolean = false;
+    useKeyReset: boolean = false;
 
     private _keys: number[] = Array();
     private _shiftPressed: boolean = false;
@@ -54,10 +55,11 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
         this._onKeyboardObserver = this._scene.onKeyboardObservable.add(function (info: any) {
             var evt = info.event;
             if (!evt.metaKey) {
+                var keyCode = evt.keyCode;
                 if (info.type === KeyboardEventTypes.KEYDOWN) {
                     _this._ctrlPressed = evt.ctrlKey;
                     _this._shiftPressed = evt.shiftKey;
-                    if (_this.keysUp.indexOf(evt.keyCode) !== -1 || _this.keysDown.indexOf(evt.keyCode) !== -1 || _this.keysLeft.indexOf(evt.keyCode) !== -1 || _this.keysRight.indexOf(evt.keyCode) !== -1 || _this.keysReset.indexOf(evt.keyCode) !== -1) {
+                    if (hasKey(keyCode)) {
                         var index = _this._keys.indexOf(evt.keyCode);
                         if (index === -1) {
                             _this._keys.push(evt.keyCode);
@@ -70,7 +72,7 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
                     }
                 }
                 else {
-                    if (_this.keysUp.indexOf(evt.keyCode) !== -1 || _this.keysDown.indexOf(evt.keyCode) !== -1 || _this.keysLeft.indexOf(evt.keyCode) !== -1 || _this.keysRight.indexOf(evt.keyCode) !== -1 || _this.keysReset.indexOf(evt.keyCode) !== -1) {
+                    if (hasKey(keyCode)) {
                         var index = _this._keys.indexOf(evt.keyCode);
                         if (index >= 0) {
                             _this._keys.splice(index, 1);
@@ -84,6 +86,10 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
                 }
             }
         });
+
+        const hasKey = (keyCode: any) => {
+            return _this.keysUp.indexOf(keyCode) !== -1 || _this.keysDown.indexOf(keyCode) !== -1 || _this.keysLeft.indexOf(keyCode) !== -1 || _this.keysRight.indexOf(keyCode) !== -1 || _this.keysReset.indexOf(keyCode) !== -1 || _this.keysFly.indexOf(keyCode) !== -1 || _this.keysSink.indexOf(keyCode) !== -1;
+        };
     }
     detachControl(): void {
         if (this._scene) {
@@ -99,37 +105,37 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
         this._keys = [];
     }
     checkInputs(): void {
+        //NOTE: Increase speed on Y axis to account for 
+        //      'MapPanning' where only X & Z  are kept after
+        //      transformation with X & Y inertial panning
+        //NOTE: Unexpected behaviours when beta is too close to 0
+
+
+
         if (this._onKeyboardObserver) {
             var camera = this.camera;
+            var panningSensibilityYDelta = (Math.PI / 2) / this.camera.beta;
+            var panSpeed = (1 / this.panningSensibility)
             for (var index = 0; index < this._keys.length; index++) {
                 var keyCode = this._keys[index];
+
+                if (this._shiftPressed) {
+                    panSpeed *= 2;
+                }
                 if (this.keysUp.indexOf(keyCode) !== -1) {
-                    //camera.inertialBetaOffset -= this.angularSpeed;
-                    //camera.inertialPanningY += 1 / this.panningSensibility;
-                    //camera.position.x -= 1 / this.panningSensibility;
-                    camera.position.x += 1000.0;
+                    camera.inertialPanningY += panSpeed * panningSensibilityYDelta * Math.max(0.25, (this.camera.radius / 55))
                 } else if (this.keysDown.indexOf(keyCode) !== -1) {
-                    //camera.inertialBetaOffset += this.angularSpeed;
-                    //camera.inertialPanningY -= 1 / this.panningSensibility;
-                    //camera.position.x += 1 / this.panningSensibility;
+                    camera.inertialPanningY -= panSpeed * panningSensibilityYDelta * Math.max(0.25, (this.camera.radius / 55))
                 } else if (this.keysLeft.indexOf(keyCode) !== -1) {
-                    //camera.inertialAlphaOffset -= this.angularSpeed;
-                    camera.inertialPanningX -= 1 / this.panningSensibility;
+                    camera.inertialPanningX -= panSpeed * Math.max(0.25, (this.camera.radius / 55))
                 } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                    //camera.inertialAlphaOffset += this.angularSpeed;
-                    camera.inertialPanningX += 1 / this.panningSensibility;
+                    camera.inertialPanningX += panSpeed * Math.max(0.25, (this.camera.radius / 55))
                 } else if (this.keysSink.indexOf(keyCode) !== -1) {
-                    camera.inertialPanningY += 1 / this.panningSensibility;
+                    camera.target.y -= panSpeed * 10.0
                 } else if (this.keysFly.indexOf(keyCode) !== -1) {
-                    camera.inertialPanningY -= 1 / this.panningSensibility;
-                } else if (this.keysReset.indexOf(keyCode) !== -1) {
-                    if (camera.useInputToRestoreState) {
-                        camera.restoreState();
-                    }
-                } else if (this.keysReset.indexOf(keyCode) !== -1) {
-                    if (camera.useInputToRestoreState) {
-                        camera.restoreState();
-                    }
+                    camera.target.y += panSpeed * 10.0
+                } else if (this.keysReset.indexOf(keyCode) !== -1 && this.useKeyReset) {
+                    camera.restoreState();
                 }
             }
         }
