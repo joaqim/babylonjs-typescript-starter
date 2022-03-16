@@ -377,7 +377,8 @@ var DynamicTerrain = /** @class */ (function () {
         var updateLOD = false;
         var updateForced = (force) ? true : false;
         var terrainPosition = this._terrain.position;
-        var cameraPosition = this._terrainCamera.globalPosition;
+        var cameraTarget = this._terrainCamera.target;
+        var cameraPosition = cameraTarget != undefined ? cameraTarget : this._terrainCamera.globalPosition;
         var shiftFromCamera = this.shiftFromCamera;
         var terrainHalfSizeX = this._terrainHalfSizeX;
         var terrainHalfSizeZ = this._terrainHalfSizeZ;
