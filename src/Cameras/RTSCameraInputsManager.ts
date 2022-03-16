@@ -1,12 +1,17 @@
-import { ArcRotateCamera, ArcRotateCameraMouseWheelInput, CameraInputsManager } from "@babylonjs/core";
+import { ArcRotateCamera, Camera, CameraInputsManager } from "@babylonjs/core";
+import RTSCameraKeyboardMoveInput from "./Inputs/RTSCameraKeyboardMoveInput";
+import RTSCameraMouseWheelInput from "./Inputs/RTSCameraMouseWheelInput";
+import RTSCameraPointersInput from "./Inputs/RTSCameraPointersInput";
 
- export class RTSCameraInputsManager extends CameraInputsManager<ArcRotateCamera> {
+export class RTSCameraInputsManager extends CameraInputsManager<ArcRotateCamera> {
     /**
-     * Instantiates a new ArcRotateCameraInputsManager.
+     * Instantiates a new RTSCameraInputsManager.
      * @param camera Defines the camera the inputs belong to
      */
     constructor(camera: ArcRotateCamera) {
         super(camera);
+        this.camera.upperRadiusLimit = 25;
+        this.camera.lowerRadiusLimit = 5;
     }
 
     /**
@@ -14,10 +19,7 @@ import { ArcRotateCamera, ArcRotateCameraMouseWheelInput, CameraInputsManager } 
      * @returns the current input manager
      */
     public addMouseWheel(): RTSCameraInputsManager {
-        var mouseWheelInput = new ArcRotateCameraMouseWheelInput()
-        mouseWheelInput.camera.upperRadiusLimit = 50;
-        mouseWheelInput.camera.lowerRadiusLimit = 1;
-        this.add(mouseWheelInput);
+        this.add(new RTSCameraMouseWheelInput())
         return this;
     }
 
@@ -26,7 +28,7 @@ import { ArcRotateCamera, ArcRotateCameraMouseWheelInput, CameraInputsManager } 
      * @returns the current input manager
      */
     public addPointers(): RTSCameraInputsManager {
-        //this.add(new RTSCameraPointersInput());
+        this.add(new RTSCameraPointersInput());
         return this;
     }
 
@@ -35,7 +37,7 @@ import { ArcRotateCamera, ArcRotateCameraMouseWheelInput, CameraInputsManager } 
      * @returns the current input manager
      */
     public addKeyboard(): RTSCameraInputsManager {
-        //this.add(new RTSKeyboardMoveInput());
+        this.add(new RTSCameraKeyboardMoveInput(this.camera));
         return this;
     }
 
