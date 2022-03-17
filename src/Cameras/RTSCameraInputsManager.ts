@@ -14,7 +14,6 @@ export class RTSCameraInputsManager extends CameraInputsManager<ArcRotateCamera>
         this.camera.upperRadiusLimit = 55;
         this.camera.lowerRadiusLimit = 5;
         this.camera.wheelDeltaPercentage = 550;
-        this.camera.panningSensibility = 1000;
         this.camera.panningAxis = new Vector3(1, 0, 1);
     }
 
@@ -41,12 +40,7 @@ export class RTSCameraInputsManager extends CameraInputsManager<ArcRotateCamera>
      * @returns the current input manager
      */
     public addKeyboard(): RTSCameraInputsManager {
-        var keyboardInput = new RTSCameraKeyboardMoveInput(this.camera);
-
-        this.camera.storeState();
-        keyboardInput.useKeyReset = true;
-
-        this.add(keyboardInput)
+        this.add(new RTSCameraKeyboardMoveInput(this.camera))
         return this;
     }
 

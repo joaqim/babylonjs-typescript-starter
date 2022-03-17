@@ -3,6 +3,8 @@ import { ArcRotateCamera, ArcRotateCameraPointersInput, ICameraInput, Nullable }
 export default class RTSCameraPointersInput extends ArcRotateCameraPointersInput {
     constructor() {
         super();
+        this.panningSensibility = 150;
+        this.buttons = [1, 2]
     }
     getClassName(): string {
         return "RTSCameraPointersInput"

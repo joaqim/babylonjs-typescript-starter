@@ -1,10 +1,12 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
-import { ArcRotateCamera, Color3, DirectionalLight, Engine, FlyCamera, FreeCamera, HemisphericLight, Material, MeshBuilder, PBRBaseSimpleMaterial, PBRMaterial, PBRMetallicRoughnessMaterial, Scene, ShadowGenerator, StandardMaterial, Texture, Vector3 } from "@babylonjs/core";
+import { ArcRotateCamera, Color3, DirectionalLight, Engine, FlyCamera, FreeCamera, HemisphericLight, Material, MeshBuilder, NodeMaterial, PBRBaseSimpleMaterial, PBRMaterial, PBRMetallicRoughnessMaterial, ProceduralTexture, Scene, ShadowGenerator, SpotLight, StandardMaterial, Texture, Tools, Vector3 } from "@babylonjs/core";
 import { RTSCameraInputsManager } from "./Cameras/RTSCameraInputsManager";
 import { DynamicTerrain } from "./Extensions/babylon.dynamicTerrain";
-import ground_texture from "../public/assets/ground.jpg"
+import groundImg from "../public/assets/ground.jpg"
+import selectionCircleImg from "../public/assets/selectionCircle.png"
+import selectionCircleMat from "../public/assets/Materials/SelectionCircle.json"
 
 import SimplexNoise from 'simplex-noise'
 
@@ -52,7 +54,7 @@ var genTerrain = (scene: Scene) => {
   }
   const terrainSub = 100;
 
-  
+
 
   var params = {
     //mapColors,
@@ -69,13 +71,13 @@ var genTerrain = (scene: Scene) => {
 
   terrain.isAlwaysVisible = true;
 
-  var terrainTexture = new Texture(ground_texture, scene);
+  var terrainTexture = new Texture(groundImg, scene);
   terrainTexture.uScale = 4.0;
   terrainTexture.vScale = terrainTexture.uScale;
 
   var terrainMaterial = new StandardMaterial("TerrainMaterial", scene)
   terrainMaterial.diffuseTexture = terrainTexture
-  terrainMaterial.specularColor = new Color3(0,0,0)
+  terrainMaterial.specularColor = new Color3(0, 0, 0)
 
   terrain.mesh.material = terrainMaterial
   /*
@@ -101,7 +103,8 @@ export default class App {
 
     var sphere = addSphere(scene)
 
-    var camera = new ArcRotateCamera("Camera", 0, (Math.PI / 5), 35, Vector3.Zero(), scene);
+    //var camera = new ArcRotateCamera("Camera", 0, (Math.PI / 5), 35, Vector3.Zero(), scene);
+    var camera = new ArcRotateCamera("Camera", 0, Tools.ToRadians(35), 35, Vector3.Zero(), scene);
     //camera.setTarget(sphere);
     camera.setTarget(Vector3.Zero());
     //sphere.getAbsolutePosition();
@@ -111,7 +114,7 @@ export default class App {
     camera.inputs.addMouseWheel().addPointers().addKeyboard();
     camera.attachControl(canvas);
 
-    addLight(scene)
+    //addLight(scene)
 
     //var terrain = genTerrain(scene);
     var terrain = genTerrain(scene);
@@ -127,24 +130,21 @@ export default class App {
 
     var light = new DirectionalLight("dir01", new Vector3(-1, -2, -1), scene);
     light.position = new Vector3(20, 40, 20);
-    light.intensity = 0.5;
+    light.intensity = 1.0;
 
-    /*
     var shadowGenerator = new ShadowGenerator(1024, light);
     shadowGenerator.addShadowCaster(sphere)
     shadowGenerator.useExponentialShadowMap = true;
     terrain.mesh.receiveShadows = true;
-    */
 
-    /*
     var camElevation = 2.0;
     var camAltitude = 0.0;
     // Terrain camera altitude clamp
     scene.registerBeforeRender(function () {
       camAltitude = terrain.getHeightFromMap(camera.position.x, camera.position.z) + camElevation;
       camera.position.y = camAltitude;
+
     });
-    */
 
     /*
     // Terrain camera LOD : custom function
@@ -156,19 +156,45 @@ export default class App {
     */
 
 
+    var selectionLight = new SpotLight("selectionLight", new Vector3(0, 3, 0), new Vector3(0, -1, 0), Tools.ToRadians(45), 1, scene);
+    //NodeMaterial.ParseFromSnippetAsync("RXBW6F", scene).then((nodeMaterial: NodeMaterial) => {
+
+      selectionLight.position.x = sphere.position.x;
+      selectionLight.position.z = sphere.position.z;
+      selectionLight.position.y = sphere.position.y + 3;
+      selectionLight.setDirectionToTarget(sphere.position);
+
+      selectionLight.intensity = 5;
+
+      //var proceduralTexture = new Texture(selectionCircle, scene);
+      //var proceduralTexture = nodeMaterial.createProceduralTexture(256, scene);
+      // console.log(JSON.stringify(proceduralTexture?.serialize(), null, 2))
+
+      //var data = nodeMaterial.serialize()
+      //console.log(JSON.stringify(data, null, 2))
+      var proceduralTexture = NodeMaterial.Parse(selectionCircleMat, scene).createProceduralTexture(256, scene)
+
+        selectionLight.projectionTexture = proceduralTexture;
+      selectionLight.includedOnlyMeshes.push(terrain.mesh);
+    //});
+
+
     //var debugCamera = new FlyCamera("DebugCamera", new Vector3(0, 0, 10.0), scene, false);
 
+    scene.debugLayer.show()
     // hide/show the Inspector
     window.addEventListener("keydown", (ev) => {
       // Ctrl+Alt+A
       if (ev.ctrlKey && ev.altKey && ev.code === "KeyA") {
-        if (scene.debugLayer.isVisible()) {
-          scene.debugLayer.hide();
-        } else {
+        scene.debugLayer.isVisible() ?
+          scene.debugLayer.hide() :
           scene.debugLayer.show();
-        }
       }
-
+      if (ev.code === "KeyF") {
+        engine.isFullscreen ?
+          engine.exitFullscreen() :
+          engine.enterFullscreen(false)
+      }
     });
 
     // run the main render loop

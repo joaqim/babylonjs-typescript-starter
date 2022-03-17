@@ -1,4 +1,4 @@
-import { ArcRotateCamera, Camera, Engine, ICameraInput, KeyboardEventTypes, Nullable, Scene, Tools } from "@babylonjs/core";
+import { ArcRotateCamera, Camera, Engine, ICameraInput, KeyboardEventTypes, Nullable, Scene, Tools, Vector2 } from "@babylonjs/core";
 
 export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotateCamera> {
     camera: ArcRotateCamera;
@@ -18,9 +18,10 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
 
     keysReset: number[] = [80];
 
-    panningSensibility: number = 50.0;
+    panningSensibility: number = 20.0;
     zoomingSensibility: number = 25.0;
     angularSpeed: number = 0.01;
+    private _maxInertiaPanning = 40;
 
     useAltToZoom: boolean = false;
     useKeyReset: boolean = false;
@@ -29,8 +30,12 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
     private _shiftPressed: boolean = false;
     private _ctrlPressed: boolean = false;
 
+
     constructor(camera: ArcRotateCamera) {
         this.camera = camera;
+
+        this.camera.storeState();
+        this.useKeyReset = true;
     }
 
     getClassName(): string {
@@ -42,8 +47,6 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
 
     attachControl(noPreventDefault?: boolean): void {
         var _this = this;
-        // was there a second variable defined?
-        noPreventDefault = Tools.BackCompatCameraNoPreventDefault(arguments);
         if (this._onCanvasBlurObserver) {
             return;
         }
@@ -105,35 +108,34 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
         this._keys = [];
     }
     checkInputs(): void {
-        //NOTE: Increase speed on Y axis to account for 
+        //NOTE: var panningSensibilityYDelta is used to
+        //      increase speed on Y axis to account for 
         //      'MapPanning' where only X & Z  are kept after
         //      transformation with X & Y inertial panning
         //NOTE: Unexpected behaviours when beta is too close to 0
 
-
-
         if (this._onKeyboardObserver) {
             var camera = this.camera;
-            var panningSensibilityYDelta = (Math.PI / 2) / this.camera.beta;
-            var panSpeed = (1 / this.panningSensibility)
+            var panningSensibilityYDelta = Tools.ToRadians(35) / this.camera.beta;
+            var panSpeed = (1 / this.panningSensibility) * Math.max(0.25, (this.camera.radius / 55))
             for (var index = 0; index < this._keys.length; index++) {
                 var keyCode = this._keys[index];
-
-                if (this._shiftPressed) {
-                    panSpeed *= 2;
+                if(this._shiftPressed) {
+                    panSpeed *= 2.0;
+                    panningSensibilityYDelta
                 }
                 if (this.keysUp.indexOf(keyCode) !== -1) {
-                    camera.inertialPanningY += panSpeed * panningSensibilityYDelta * Math.max(0.25, (this.camera.radius / 55))
+                    camera.inertialPanningY += Math.min(panSpeed * panningSensibilityYDelta, this._maxInertiaPanning)
                 } else if (this.keysDown.indexOf(keyCode) !== -1) {
-                    camera.inertialPanningY -= panSpeed * panningSensibilityYDelta * Math.max(0.25, (this.camera.radius / 55))
+                    camera.inertialPanningY -= Math.min(panSpeed * panningSensibilityYDelta, this._maxInertiaPanning)
                 } else if (this.keysLeft.indexOf(keyCode) !== -1) {
-                    camera.inertialPanningX -= panSpeed * Math.max(0.25, (this.camera.radius / 55))
+                    camera.inertialPanningX -= Math.min(panSpeed, this._maxInertiaPanning)
                 } else if (this.keysRight.indexOf(keyCode) !== -1) {
-                    camera.inertialPanningX += panSpeed * Math.max(0.25, (this.camera.radius / 55))
+                    camera.inertialPanningX += Math.min(panSpeed, this._maxInertiaPanning)
                 } else if (this.keysSink.indexOf(keyCode) !== -1) {
-                    camera.target.y -= panSpeed * 10.0
+                    camera.target.y -= 0.2
                 } else if (this.keysFly.indexOf(keyCode) !== -1) {
-                    camera.target.y += panSpeed * 10.0
+                    camera.target.y += 0.2
                 } else if (this.keysReset.indexOf(keyCode) !== -1 && this.useKeyReset) {
                     camera.restoreState();
                 }
@@ -141,3 +143,4 @@ export default class RTSCameraKeyboardMoveInput implements ICameraInput<ArcRotat
         }
     }
 }
+
