@@ -192,8 +192,10 @@ var DynamicTerrain = /** @class */ (function () {
         this.computeNormalsFromMap();
         // update it immediatly and register the update callback function in the render loop
         this.update(true);
-        this._terrain.position.x = this._terrainCamera.globalPosition.x - this._terrainHalfSizeX + this.shiftFromCamera.x;
-        this._terrain.position.z = this._terrainCamera.globalPosition.z - this._terrainHalfSizeZ + this.shiftFromCamera.z;
+        var cameraTarget = this._terrainCamera.target;
+        var cameraPosition = cameraTarget != undefined ? cameraTarget : this._terrainCamera.globalPosition;
+        this._terrain.position.x = cameraPosition.x - this._terrainHalfSizeX + this.shiftFromCamera.x;
+        this._terrain.position.z = cameraPosition.z - this._terrainHalfSizeZ + this.shiftFromCamera.z;
         // initialize deltaSub to make on the map
         var deltaNbSubX = (this._terrain.position.x - mapData[0]) / this._averageSubSizeX;
         var deltaNbSubZ = (this._terrain.position.z - mapData[2]) / this._averageSubSizeZ;

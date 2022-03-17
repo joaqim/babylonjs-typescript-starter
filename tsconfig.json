@@ -14,8 +14,8 @@
       "dom.iterable",
       "esnext"
     ],
-    "jsx": "react",
+    "jsx": "react"
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "assets.d.ts"],
   "exclude": ["/**/*.js"]
 }

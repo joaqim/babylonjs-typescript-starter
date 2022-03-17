@@ -15,13 +15,26 @@ module.exports = {
     rules: [
       { test: /\.tsx?$/, loader: "ts-loader" },
       { test: /\.glsl$/, loader: "webpack-glsl-loader" },
+      {
+        test: /\.(jpe?g|png|gif|svg)$/i,
+        use: [
+          'file-loader',
+          {
+            loader: 'image-webpack-loader',
+            options: {
+              bypassOnDebug: true, // webpack@1.x
+              disable: true, // webpack@2.x and newer
+            },
+          },
+        ],
+      }
     ],
   },
   plugins: [
     new CopyPlugin({
-        patterns: [
-            { from: "public" },
-        ],
+      patterns: [
+        { from: "public" },
+      ],
     }),
     new HtmlWebpackPlugin({
       template: "!!handlebars-loader!src/index.hbs",
